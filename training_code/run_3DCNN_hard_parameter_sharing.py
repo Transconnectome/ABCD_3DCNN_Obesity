@@ -1,10 +1,8 @@
 ## ======= load module ======= ##
-import models.simple3d as simple3d #model script
-import models.vgg3d as vgg3d #model script
 import models.resnet3d as resnet3d #model script
 import models.densenet3d as densenet3d #model script
 import models.efficientnet3d as efficientnet3d
-from utils.utils import set_random_seed, CLIreporter, save_exp_result, checkpoint_save, checkpoint_load, MOPED_network
+from utils.utils import set_random_seed, CLIreporter, save_exp_result, checkpoint_save, checkpoint_load
 from utils.lr_scheduler import *
 from utils.early_stopping import * 
 from dataloaders.dataloaders import check_study_sample, loading_images, loading_phenotype, combining_image_target, partition_dataset, matching_partition_dataset, undersampling_ALLset, matching_undersampling_ALLset, partition_dataset_predefined
@@ -97,7 +95,6 @@ def argument_setting():
     parser.add_argument('--c_mixup', type=float, default=0, help='')
     parser.add_argument('--manifold_mixup', type=float, default=0, help='')
     parser.add_argument('--partitioned_dataset_number', default=None, type=int, required=False)
-    parser.add_argument('--moped', action='store_true')
     parser.set_defaults(moped=False)
     parser.add_argument('--finetune_undersample', action='store_true')
     parser.set_defaults(finetune_undersample=False)
@@ -151,95 +148,14 @@ def experiment(partition, subject_data, save_dir, args): #in_channels,out_dim
         import models.densenet3d as densenet3d #model script
         from envs.experiments import train, validate, test 
         net = densenet3d.densenet3D201(subject_data, args)
-    # DenseNet with CBAM module
-    if args.model == 'densenet3D121_cbam':
-        import models.densenet3d_cbam as densenet3d_cbam #model script
-        from envs.experiments import train, validate, test 
-        net = densenet3d_cbam.densenet3D121_cbam(subject_data, args)
-    elif args.model == 'densenet3D169_cbam':
-        import models.densenet3d_cbam as densenet3d_cbam #model script
-        from envs.experiments import train, validate, test 
-        net = densenet3d_cbam.densenet3D169_cbam(subject_data, args) 
-    elif args.model == 'densenet3D201_cbam':
-        import models.densenet3d_cbam as densenet3d_cbam #model script
-        from envs.experiments import train, validate, test 
-        net = densenet3d_cbam.densenet3D201_cbam(subject_data, args)
-    # Bayesian (variational) DenseNet
-    elif args.model == 'variational_densenet3D121':
-        import models.variational_densenet3d as variational_densenet3d
-        from envs.bayesian_experiments import train, validate, test 
-        if args.moped: 
-            import models.densenet3d as densenet3d
-            bayes_net = variational_densenet3d.densenet3D121(subject_data, args)
-            det_net = densenet3d.densenet3D121(subject_data, args)
-        else: 
-            net = variational_densenet3d.densenet3D121(subject_data, args)
-    elif args.model == 'variational_densenet3D169':
-        import models.variational_densenet3d as variational_densenet3d
-        from envs.bayesian_experiments import train, validate, test 
-        if args.moped: 
-            import models.densenet3d as densenet3d
-            bayes_net = variational_densenet3d.densenet3D169(subject_data, args)
-            det_net = densenet3d.densenet3D169(subject_data, args)
-        else: 
-            net = variational_densenet3d.densenet3D169(subject_data, args)
-    elif args.model == 'variational_densenet3D201':
-        import models.variational_densenet3d as variational_densenet3d
-        from envs.bayesian_experiments import train, validate, test 
-        if args.moped: 
-            import models.densenet3d as densenet3d
-            bayes_net = variational_densenet3d.densenet3D201(subject_data, args)
-            det_net = densenet3d.densenet3D201(subject_data, args)
-        else: 
-            net = variational_densenet3d.densenet3D201(subject_data, args)
-    # Bayesian (flipout) DenseNet
-    elif args.model == 'flipout_densenet3D121':
-        import models.flipout_densenet3d as flipout_densenet3d
-        from envs.bayesian_experiments import train, validate, test 
-        if args.moped: 
-            import models.densenet3d as densenet3d
-            bayes_net = flipout_densenet3d.densenet3D121(subject_data, args)
-            det_net = densenet3d.densenet3D121(subject_data, args)
-        else: 
-            net = flipout_densenet3d.densenet3D121(subject_data, args)
-    elif args.model == 'flipout_densenet3D169':
-        import models.flipout_densenet3d as flipout_densenet3d
-        from envs.bayesian_experiments import train, validate, test 
-        if args.moped: 
-            import models.densenet3d as densenet3d
-            bayes_net = flipout_densenet3d.densenet3D169(subject_data, args)
-            det_net = densenet3d.densenet3D169(subject_data, args)
-        else: 
-            net = flipout_densenet3d.densenet3D169(subject_data, args)
-    elif args.model == 'flipout_densenet3D201':
-        import models.flipout_densenet3d as flipout_densenet3d
-        from envs.bayesian_experiments import train, validate, test 
-        if args.moped: 
-            import models.densenet3d as densenet3d
-            bayes_net = flipout_densenet3d.densenet3D201(subject_data, args)
-            det_net = densenet3d.densenet3D201(subject_data, args)
-        else: 
-            net = flipout_densenet3d.densenet3D201(subject_data, args)
+
     # EfficientNet V1 
     elif args.model.find('efficientnet3D') != -1: 
         from envs.experiments import train, validate, test 
         net = efficientnet3d.efficientnet3D(subject_data,args)
-    # ViT
-    elif args.model.find('vit_') != -1:
-        import models.model_ViT as ViT
-        from envs.experiments import train, validate, test
-        net = ViT.__dict__[args.model](img_size = args.resize, attn_drop=0.5, drop=0.5, drop_path=0.1, global_pool=True, 
-                                       subject_data=subject_data, args=args)
 
     # load checkpoint
-    if args.moped: 
-        assert args.checkpoint_dir is not None 
-        det_net = checkpoint_load(det_net, args.checkpoint_dir, layers='conv') 
-        net = MOPED_network(bayes_net=bayes_net, det_net=det_net)   # weights of FC layer does not used for prior of Bayesian DNN if checkpoint load only convolution layers
-        del det_net
-        print("Prior of Bayesian DNN are set with parameters from Deterministic DNN")
-    else: 
-        if args.checkpoint_dir is not None: 
+    if args.checkpoint_dir is not None: 
             net = checkpoint_load(net, args.checkpoint_dir, layers='conv')
 
 
