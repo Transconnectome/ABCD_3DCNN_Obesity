@@ -9,8 +9,8 @@ The list of models are as follows
 ```
 python3 run_3DCNN_hard_parameter_sharing.py --optim AdamW  --lr 1e-3 --epoch 50 --model densenet3D121 --batch_size 32 --accumulation_steps 4 --exp_name pretrain_BMI_partion0 --num_target BMI_sds_baseline --resize 128 128 128  --study_sample ABCD_1y_after_become_overweight_pretrain_MDD  --partitioned_dataset_number 0 --weight_decay 1e-4 --warmup_epoch 0 --checkpoint_dir 
 ```
-
-
+  
+  
 # The example of fine-tuning model to predict future obesity risk
 
 ## full fine-tuning pre-trained model parameters
