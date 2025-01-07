@@ -1,7 +1,6 @@
 The list of models are as follows 
-- **simple 3DCNN**
-- **VGGNet** (11 layers, 13 layers, 16 layers, 19 layers)
 - **ResNet** (50 layers, 101 layers, 152 layers)
+- **EfficientNet** ()
 - **DenseNet** (121 layers, 169 layers, 201 layers, 264 layers)
 
   
