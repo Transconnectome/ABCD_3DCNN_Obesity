@@ -1,0 +1,468 @@
+
+
+## ==== setting ==== ##
+```{r cars}
+library(ggplot2)
+```
+
+## ==== loading data ==== ##
+```{r cars}
+followup_year = '2_year_follow_up_y_arm_1' # choices = ["1_year_follow_up_y_arm_1", "2_year_follow_up_y_arm_1"] 
+save_dir = "/Users/wangheehwan/Desktop/CNN_for_BMI/paper/data/statistics/result/CrossSectional/become_overweight_prob"
+num_cov = c('birth_weight', 'child_age', 'high_educ', 'income')
+cat_cov = c('sex', 'race_ethnicity', 'abcd_site','married')
+pheno = read.csv('/Users/wangheehwan/Desktop/CNN_for_BMI/phenotype_data/ABCD Release4.0 Tabular dataset.csv')
+if (followup_year == '1_year_follow_up_y_arm_1'){
+    year = 'after1y'
+    score = read.csv("/Users/wangheehwan/Desktop/CNN_for_BMI/paper/data/statistics/Become_overweight_probability_score_after1y.csv")
+    score = score[score$correct=='True',]
+    #score = score[score$become_overweight==1,]
+} else if (followup_year == '2_year_follow_up_y_arm_1') {
+    year = 'after2y'
+    score = read.csv("/Users/wangheehwan/Desktop/CNN_for_BMI/paper/data/statistics/Become_overweight_probability_score_after2y.csv")
+    score = score[score$correct=='True',]
+    #score = score[score$become_overweight==1,]
+}
+for (i in 1:nrow(pheno)){
+    pheno[i,'subjectkey'] = gsub('_','', pheno[i,'subjectkey'])
+}
+
+
+```
+
+
+## ==== Preprocess data  ==== ##
+```{r cars}
+pheno_filtered = pheno[pheno$eventname==followup_year,]
+pheno_score = merge(score, pheno_filtered, by='subjectkey')
+```
+
+
+## ==== Polygenic Score ==== ##
+```{r cars}
+title = 'PolyGenicScore'
+target_list = c('adhdeur6', 'ptsdeur4', 'worryauto', 'bipauto', 'mddeur6', 'bmieur4', 'insomniaeur6', 'edauto', 'ocdauto', 'anxietyauto')
+
+# summary template 
+glm.beta = data.frame()
+glm.se = data.frame()
+glm.p = data.frame()
+
+for (target in target_list){ 
+    # data preprocess 
+    dv = 'become_overweight_prob'
+    indv_list = c(target)
+    indv_list = append(indv_list, num_cov)
+    indv_list = append(indv_list, cat_cov)
+    var_list = append(dv, indv_list)
+    # only for analyzing polygenic risk score
+    df = pheno_score[,append(var_list,'euro')]     
+    df = df[df$euro==1,]
+    df = na.omit(df)
+    
+    # preprocess categorical variables
+    for (cat in cat_cov){
+        if (cat == 'sex' | cat == 'abcd_site'){
+            df[,cat] = as.factor(as.numeric(as.factor(df[,cat]))-1)
+        }else{
+            df[,cat] = as.factor(df[,cat])
+        }
+    }
+    # prepocess numerical variables 
+    for (num in num_cov){ 
+        df[,num] = ((df[,num] - mean(df[,num])) / sd(df[,num]))
+
+    }
+    # preprocess target variable
+    df[,target] = ((df[,target] - mean(df[,target])) / sd(df[,target]))
+    # make formula of model
+    independent = paste(indv_list, collapse='+')
+    model = paste(dv, '~', independent)
+    
+    # perform analysis
+    result = glm(as.formula(model), data=df, family=gaussian())
+    cff = coef(summary(result))
+    glm.beta = rbind.data.frame(glm.beta, cff[2,1])
+    glm.se = rbind.data.frame(glm.se, cff[2,2])
+    glm.p = rbind.data.frame(glm.p, cff[2,4])
+    
+}
+# summary 
+colnames(glm.beta) = 'BETA'
+colnames(glm.se) = 'SE'
+colnames(glm.p) = 'P'
+result_summary = data.frame(target_list, glm.beta)
+result_summary = data.frame(result_summary, glm.se)
+result_summary = data.frame(result_summary, glm.p)
+P_adjust = p.adjust(result_summary$P, method='bonf')
+result_summary = data.frame(result_summary, P_adjust)
+print(result_summary)
+write.csv(result_summary, file = paste0(save_dir,'/',title,'_',year,'_become_overweight_prob.csv'), quote = FALSE, row.names=FALSE)
+```
+
+
+
+## ==== Sleep Disturbance ==== ##
+```{r cars}
+title = 'SleepDisturbance'
+target_list = c('sleep_disturb_dims', 'sleep_disturb_sbd', 'sleep_disturb_da', 'sleep_disturb_swtd', 'sleep_disturb_does', 'sleep_disturb_shy', 'sleep_disturb_total')
+
+# summary template 
+glm.beta = data.frame()
+glm.se = data.frame()
+glm.p = data.frame()
+
+for (target in target_list){ 
+    # data preprocess 
+    dv = 'become_overweight_prob'
+    indv_list = c(target)
+    indv_list = append(indv_list, num_cov)
+    indv_list = append(indv_list, cat_cov)
+    var_list = append(dv, indv_list)
+    df = pheno_score[,var_list]
+    df = na.omit(df)
+    # preprocess categorical variables
+    for (cat in cat_cov){
+        if (cat == 'sex' | cat == 'abcd_site'){
+            df[,cat] = as.factor(as.numeric(as.factor(df[,cat]))-1)
+        }else{
+            df[,cat] = as.factor(df[,cat])
+        }
+    }
+    # prepocess numerical variables 
+    for (num in num_cov){ 
+        df[,num] = ((df[,num] - mean(df[,num])) / sd(df[,num]))
+
+    }
+    # preprocess target variable
+    df[,target] = ((df[,target] - mean(df[,target])) / sd(df[,target]))
+    # make formula of model
+    independent = paste(indv_list, collapse='+')
+    model = paste(dv, '~', independent)
+    
+    # perform analysis
+    result = glm(as.formula(model), data=df, family=gaussian())
+    cff = coef(summary(result))
+    glm.beta = rbind.data.frame(glm.beta, cff[2,1])
+    glm.se = rbind.data.frame(glm.se, cff[2,2])
+    glm.p = rbind.data.frame(glm.p, cff[2,4])
+    
+}
+# summary 
+colnames(glm.beta) = 'BETA'
+colnames(glm.se) = 'SE'
+colnames(glm.p) = 'P'
+result_summary = data.frame(target_list, glm.beta)
+result_summary = data.frame(result_summary, glm.se)
+result_summary = data.frame(result_summary, glm.p)
+P_adjust = p.adjust(result_summary$P, method='bonf')
+result_summary = data.frame(result_summary, P_adjust)
+print(result_summary)
+write.csv(result_summary, file = paste0(save_dir,'/',title,'_',year,'_become_overweight_prob.csv'), quote = FALSE, row.names=FALSE)
+```
+
+
+
+## ==== CBCL Syndrome scale==== ##
+```{r cars}
+title = 'CBCLSyndrome'
+target_list = c("cbcl_anxiety", "cbcl_withdep","cbcl_somatic","cbcl_social","cbcl_thought","cbcl_attention","cbcl_rulebreak","cbcl_aggressive","cbcl_internal","cbcl_external","cbcl_totprob")
+
+# summary template 
+glm.beta = data.frame()
+glm.se = data.frame()
+glm.p = data.frame()
+
+for (target in target_list){ 
+    # data preprocess 
+    dv = 'become_overweight_prob'
+    indv_list = c(target)
+    indv_list = append(indv_list, num_cov)
+    indv_list = append(indv_list, cat_cov)
+    var_list = append(dv, indv_list)
+    df = pheno_score[,var_list]
+    df = na.omit(df)
+    # preprocess categorical variables
+    for (cat in cat_cov){
+        if (cat == 'sex' | cat == 'abcd_site'){
+            df[,cat] = as.factor(as.numeric(as.factor(df[,cat]))-1)
+        }else{
+            df[,cat] = as.factor(df[,cat])
+        }
+    }
+    # prepocess numerical variables 
+    for (num in num_cov){ 
+        df[,num] = ((df[,num] - mean(df[,num])) / sd(df[,num]))
+
+    }
+    # preprocess target variable
+    df[,target] = ((df[,target] - mean(df[,target])) / sd(df[,target]))
+    # make formula of model
+    independent = paste(indv_list, collapse='+')
+    model = paste(dv, '~', independent)
+    
+    # perform analysis
+    result = glm(as.formula(model), data=df, family=gaussian())
+    cff = coef(summary(result))
+    glm.beta = rbind.data.frame(glm.beta, cff[2,1])
+    glm.se = rbind.data.frame(glm.se, cff[2,2])
+    glm.p = rbind.data.frame(glm.p, cff[2,4])
+    
+}
+# summary 
+colnames(glm.beta) = 'BETA'
+colnames(glm.se) = 'SE'
+colnames(glm.p) = 'P'
+result_summary = data.frame(target_list, glm.beta)
+result_summary = data.frame(result_summary, glm.se)
+result_summary = data.frame(result_summary, glm.p)
+P_adjust = p.adjust(result_summary$P, method='bonf')
+result_summary = data.frame(result_summary, P_adjust)
+print(result_summary)
+write.csv(result_summary, file = paste0(save_dir,'/',title,'_',year,'_become_overweight_prob.csv'), quote = FALSE, row.names=FALSE)
+```
+
+
+
+## ==== CBCL DSM scale ==== ##
+```{r cars}
+title = 'CBCLDSM'
+target_list = c("cbcl_dsm_depression","cbcl_dsm_anxiety","cbcl_dsm_somatic","cbcl_dsm_adhd","cbcl_dsm_opposit","cbcl_dsm_conduct")
+
+# summary template 
+glm.beta = data.frame()
+glm.se = data.frame()
+glm.p = data.frame()
+
+for (target in target_list){ 
+    # data preprocess 
+    dv = 'become_overweight_prob'
+    indv_list = c(target)
+    indv_list = append(indv_list, num_cov)
+    indv_list = append(indv_list, cat_cov)
+    var_list = append(dv, indv_list)
+    df = pheno_score[,var_list]
+    df = na.omit(df)
+    # preprocess categorical variables
+    for (cat in cat_cov){
+        if (cat == 'sex' | cat == 'abcd_site'){
+            df[,cat] = as.factor(as.numeric(as.factor(df[,cat]))-1)
+        }else{
+            df[,cat] = as.factor(df[,cat])
+        }
+    }
+    # prepocess numerical variables 
+    for (num in num_cov){ 
+        df[,num] = ((df[,num] - mean(df[,num])) / sd(df[,num]))
+
+    }
+    # preprocess target variable
+    df[,target] = ((df[,target] - mean(df[,target])) / sd(df[,target]))
+    # make formula of model
+    independent = paste(indv_list, collapse='+')
+    model = paste(dv, '~', independent)
+    
+    # perform analysis
+    result = glm(as.formula(model), data=df, family=gaussian())
+    cff = coef(summary(result))
+    glm.beta = rbind.data.frame(glm.beta, cff[2,1])
+    glm.se = rbind.data.frame(glm.se, cff[2,2])
+    glm.p = rbind.data.frame(glm.p, cff[2,4])
+    
+}
+# summary 
+colnames(glm.beta) = 'BETA'
+colnames(glm.se) = 'SE'
+colnames(glm.p) = 'P'
+result_summary = data.frame(target_list, glm.beta)
+result_summary = data.frame(result_summary, glm.se)
+result_summary = data.frame(result_summary, glm.p)
+P_adjust = p.adjust(result_summary$P, method='bonf')
+result_summary = data.frame(result_summary, P_adjust)
+print(result_summary)
+write.csv(result_summary, file = paste0(save_dir,'/',title,'_',year,'_become_overweight_prob.csv'), quote = FALSE, row.names=FALSE)
+```
+
+
+
+## ==== CBCL Scale2007==== ##
+```{r cars}
+title = 'CBCL2007'
+target_list = c("cbcl_sct"	,"cbcl_ocd","cbcl_stress")
+
+# summary template 
+glm.beta = data.frame()
+glm.se = data.frame()
+glm.p = data.frame()
+
+for (target in target_list){ 
+    # data preprocess 
+    dv = 'become_overweight_prob'
+    indv_list = c(target)
+    indv_list = append(indv_list, num_cov)
+    indv_list = append(indv_list, cat_cov)
+    var_list = append(dv, indv_list)
+    df = pheno_score[,var_list]
+    df = na.omit(df)
+    # preprocess categorical variables
+    for (cat in cat_cov){
+        if (cat == 'sex' | cat == 'abcd_site'){
+            df[,cat] = as.factor(as.numeric(as.factor(df[,cat]))-1)
+        }else{
+            df[,cat] = as.factor(df[,cat])
+        }
+    }
+    # prepocess numerical variables 
+    for (num in num_cov){ 
+        df[,num] = ((df[,num] - mean(df[,num])) / sd(df[,num]))
+
+    }
+    # preprocess target variable
+    df[,target] = ((df[,target] - mean(df[,target])) / sd(df[,target]))
+    # make formula of model
+    independent = paste(indv_list, collapse='+')
+    model = paste(dv, '~', independent)
+    
+    # perform analysis
+    result = glm(as.formula(model), data=df, family=gaussian())
+    cff = coef(summary(result))
+    glm.beta = rbind.data.frame(glm.beta, cff[2,1])
+    glm.se = rbind.data.frame(glm.se, cff[2,2])
+    glm.p = rbind.data.frame(glm.p, cff[2,4])
+    
+}
+# summary 
+colnames(glm.beta) = 'BETA'
+colnames(glm.se) = 'SE'
+colnames(glm.p) = 'P'
+result_summary = data.frame(target_list, glm.beta)
+result_summary = data.frame(result_summary, glm.se)
+result_summary = data.frame(result_summary, glm.p)
+P_adjust = p.adjust(result_summary$P, method='bonf')
+result_summary = data.frame(result_summary, P_adjust)
+print(result_summary)
+write.csv(result_summary, file = paste0(save_dir,'/',title,'_',year,'_become_overweight_prob.csv'), quote = FALSE, row.names=FALSE)
+```
+
+
+
+## ==== Screen time main category==== ##
+```{r cars}
+title = 'Screentime_main'
+target_list = c("screentime_wkday_y", "screentime_wkend_y", "screentime_wkday_p", "screentime_wkend_p")
+
+# summary template 
+glm.beta = data.frame()
+glm.se = data.frame()
+glm.p = data.frame()
+
+for (target in target_list){ 
+    # data preprocess 
+    dv = 'become_overweight_prob'
+    indv_list = c(target)
+    indv_list = append(indv_list, num_cov)
+    indv_list = append(indv_list, cat_cov)
+    var_list = append(dv, indv_list)
+    df = pheno_score[,var_list]
+    df = na.omit(df)
+    # preprocess categorical variables
+    for (cat in cat_cov){
+        if (cat == 'sex' | cat == 'abcd_site'){
+            df[,cat] = as.factor(as.numeric(as.factor(df[,cat]))-1)
+        }else{
+            df[,cat] = as.factor(df[,cat])
+        }
+    }
+    # prepocess numerical variables 
+    for (num in num_cov){ 
+        df[,num] = ((df[,num] - mean(df[,num])) / sd(df[,num]))
+
+    }
+    # preprocess target variable
+    df[,target] = ((df[,target] - mean(df[,target])) / sd(df[,target]))
+    # make formula of model
+    independent = paste(indv_list, collapse='+')
+    model = paste(dv, '~', independent)
+    
+    # perform analysis
+    result = glm(as.formula(model), data=df, family=gaussian())
+    cff = coef(summary(result))
+    glm.beta = rbind.data.frame(glm.beta, cff[2,1])
+    glm.se = rbind.data.frame(glm.se, cff[2,2])
+    glm.p = rbind.data.frame(glm.p, cff[2,4])
+    
+}
+# summary 
+colnames(glm.beta) = 'BETA'
+colnames(glm.se) = 'SE'
+colnames(glm.p) = 'P'
+result_summary = data.frame(target_list, glm.beta)
+result_summary = data.frame(result_summary, glm.se)
+result_summary = data.frame(result_summary, glm.p)
+P_adjust = p.adjust(result_summary$P, method='bonf')
+result_summary = data.frame(result_summary, P_adjust)
+print(result_summary)
+write.csv(result_summary, file = paste0(save_dir,'/',title,'_',year,'_become_overweight_prob.csv'), quote = FALSE, row.names=FALSE)
+
+```
+
+## ==== Screen time sub category==== ##
+```{r cars}
+title = 'Screentime_sub'
+target_list = c("screentime_wkday_tv","screentime_wkday_videos",	"screentime_wkday_games","screentime_wkday_texting","screentime_wkday_sns", "screentime_wkday_videochat", "screentime_wkend_tv", "screentime_wkend_videos", "screentime_wkend_games", "screentime_wkend_texting", "screentime_wkend_sns", "screentime_wkend_videochat", "screentime_maturegames", "screentime_rmovies")
+
+# summary template 
+glm.beta = data.frame()
+glm.se = data.frame()
+glm.p = data.frame()
+
+for (target in target_list){ 
+    # data preprocess 
+    dv = 'become_overweight_prob'
+    indv_list = c(target)
+    indv_list = append(indv_list, num_cov)
+    indv_list = append(indv_list, cat_cov)
+    var_list = append(dv, indv_list)
+    df = pheno_score[,var_list]
+    df = na.omit(df)
+    # preprocess categorical variables
+    for (cat in cat_cov){
+        if (cat == 'sex' | cat == 'abcd_site'){
+            df[,cat] = as.factor(as.numeric(as.factor(df[,cat]))-1)
+        }else{
+            df[,cat] = as.factor(df[,cat])
+        }
+    }
+    # prepocess numerical variables 
+    for (num in num_cov){ 
+        df[,num] = ((df[,num] - mean(df[,num])) / sd(df[,num]))
+
+    }
+    # preprocess target variable
+    df[,target] = ((df[,target] - mean(df[,target])) / sd(df[,target]))
+    # make formula of model
+    independent = paste(indv_list, collapse='+')
+    model = paste(dv, '~', independent)
+    
+    # perform analysis
+    result = glm(as.formula(model), data=df, family=gaussian())
+    cff = coef(summary(result))
+    glm.beta = rbind.data.frame(glm.beta, cff[2,1])
+    glm.se = rbind.data.frame(glm.se, cff[2,2])
+    glm.p = rbind.data.frame(glm.p, cff[2,4])
+    
+}
+# summary 
+colnames(glm.beta) = 'BETA'
+colnames(glm.se) = 'SE'
+colnames(glm.p) = 'P'
+result_summary = data.frame(target_list, glm.beta)
+result_summary = data.frame(result_summary, glm.se)
+result_summary = data.frame(result_summary, glm.p)
+P_adjust = p.adjust(result_summary$P, method='bonf')
+result_summary = data.frame(result_summary, P_adjust)
+print(result_summary)
+write.csv(result_summary, file = paste0(save_dir,'/',title,'_',year,'_become_overweight_prob.csv'), quote = FALSE, row.names=FALSE)
+
+```
+
