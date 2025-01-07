@@ -18,127 +18,13 @@ from monai.transforms import AddChannel, Compose, RandRotate90, Resize, ScaleInt
 from monai.data import ImageDataset
 
 def check_study_sample(study_sample):
-    if study_sample == 'UKB':
-        image_dir = '/scratch/connectome/3DCNN/data/2.UKB/1.sMRI_fs_cropped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/2.UKB/2.demo_qc/UKB_phenotype.csv'
-        #image_dir = '/home/ubuntu/dhkdgmlghks/2.UKB/1.sMRI_fs_cropped'
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/2.UKB/2.demo_qc/UKB_phenotype.csv'
-    elif study_sample == 'ABCD':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/2.sMRI_freesurfer'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total.csv'  
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total.csv'
-    elif study_sample == 'ABCD_MNI':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total.csv'  
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total.csv'
-    elif study_sample == 'ABCD_1y_after':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_revised.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_revised.csv' 
-    elif study_sample == 'ABCD_2y_after':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_revised.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_revised.csv'     
-    elif study_sample == 'ABCD_male':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_male.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_male.csv'  
-    elif study_sample == 'ABCD_female':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_female.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_female.csv'
-    elif study_sample == 'ABCD_gps':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_gps.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_gps.csv'      
-    elif study_sample == 'ABCD_2y_after_BMIgain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_revised_BMIgain.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_revised_BMIgain.csv'   
-    elif study_sample == 'ABCD_2y_after_BMIloss':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_revised_BMIloss.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_revised_BMIloss.csv'
-    elif study_sample == 'ABCD_1y_after_BMIgain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_revised_BMIgain.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'  
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_revised_BMIgain.csv'   
-    elif study_sample == 'ABCD_1y_after_BMIloss':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_revised_BMIloss.csv' 
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/1.1.sMRI_warped'
-        #image_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/2.sMRI_freesurfer'  
-        #phenotype_dir = '/home/ubuntu/dhkdgmlghks/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_revised_BMIloss.csv' 
     elif study_sample == 'ABCD_1y_after_become_overweight':
         image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_become_overweight_partitioned.csv'   
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_become_overweight_stratified_partitioned_5fold.csv'   
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_become_overweight_stratified_partitioned_4fold.csv'
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_become_overweight_PS_stratified_partitioned_5fold.csv'
         phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_become_overweight_10PS_stratified_partitioned_5fold.csv'
-    elif study_sample == 'ABCD_1y_after_become_overweight_pretrain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        #image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/3.2.1.FA_MNI_warped'
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_overweight.csv'   
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_overweight_stratified_5fold.csv' 
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_overweight_stratified_4fold.csv'   
-        #phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_overweight_PS_stratified_5fold.csv' 
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_overweight_10PS_stratified_5fold.csv' 
     elif study_sample == 'ABCD_2y_after_become_overweight':
         image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
         phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_become_overweight_10PS_stratified_partitioned_5fold.csv'   
-    elif study_sample == 'ABCD_2y_after_become_overweight_pretrain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_2y_after_become_overweight_10PS_stratified_5fold.csv'  
-    elif study_sample == 'ABCD_1y_after_become_normal':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_become_normal_stratified_partitioned_4fold.csv'   
-    elif study_sample == 'ABCD_1y_after_become_normal_pretrain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_normal_stratified_4fold.csv'  
-    elif study_sample == 'ABCD_1y_after_become_underweight':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_1years_become_underweight_partitioned.csv'   
-    elif study_sample == 'ABCD_1y_after_become_underweight_pretrain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_underweight.csv'              
-    elif study_sample == 'ABCD_2y_after_become_normal':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_become_normal_stratified_partitioned_4fold.csv'   
-    elif study_sample == 'ABCD_2y_after_become_normal_pretrain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_2y_after_become_normal_stratified_4fold.csv' 
-    elif study_sample == 'ABCD_2y_after_become_underweight':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_2years_become_underweight_partitioned.csv'   
-    elif study_sample == 'ABCD_2y_after_become_underweight_pretrain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_2y_after_become_underweight.csv' 
-    elif study_sample == 'ABCD_FA_1y_after_become_overweight_pretrain':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/3.2.1.FA_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_overweight_PS_stratified_5fold.csv'  
-    elif study_sample == 'ABCD_1y_after_become_overweight_pretrain_KSADS':
-        image_dir = '/scratch/connectome/3DCNN/data/1.ABCD/1.1.sMRI_MNI_warped'
-        phenotype_dir = '/scratch/connectome/3DCNN/data/1.ABCD/5.demo_qc/BMI_prediction/ABCD_phenotype_total_for_pretraining_1y_after_become_overweight_10PS_stratified_5fold_filtered_KSADS.csv'
-    return image_dir, phenotype_dir 
+ return image_dir, phenotype_dir 
 
 
 def loading_images(image_dir, args, study_sample='UKB'):
