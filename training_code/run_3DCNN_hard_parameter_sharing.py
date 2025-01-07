@@ -53,11 +53,7 @@ def argument_setting():
     parser.add_argument("--model",required=True,type=str,help='',choices=[
                                                                         'resnet3D18', 'resnet3D50', 'resnet3D101','resnet3D152', 
                                                                         'densenet3D121', 'densenet3D169','densenet3D201','densenet3D264', 
-                                                                        'densenet3D121_cbam', 'densenet3D169_cbam','densenet3D201_cbam','densenet3D264_cbam', 
-                                                                        'flipout_densenet3D121', 'flipout_densenet3D169','flipout_densenet3D201','flipout_densenet3D264', 
-                                                                        'variational_densenet3D121', 'variational_densenet3D169','variational_densenet3D201','variational_densenet3D264', 
                                                                         'efficientnet3D-b0','efficientnet3D-b1','efficientnet3D-b2','efficientnet3D-b3','efficientnet3D-b4','efficientnet3D-b5','efficientnet3D-b6','efficientnet3D-b7',
-                                                                        'vit_base_patch16_3D','vit_large_patch16_3D','vit_huge_patch14_3D','vit_base_patch16_3D','vit_large_patch16_3D','vit_huge_patch14_3D'
 
                                                                         ])
     parser.add_argument("--train_size",default=0.8,type=float,required=False,help='')
@@ -90,12 +86,7 @@ def argument_setting():
     parser.add_argument('--gradient_clipping', action='store_true')
     parser.set_defaults(gradient_accumulation=False)
     parser.add_argument("--undersampling_dataset_target", type=str, default=None, required=False, help='')
-    parser.add_argument('--mixup', type=float, default=0, help='')
-    parser.add_argument('--cutmix', type=float, default=0, help='')
-    parser.add_argument('--c_mixup', type=float, default=0, help='')
-    parser.add_argument('--manifold_mixup', type=float, default=0, help='')
     parser.add_argument('--partitioned_dataset_number', default=None, type=int, required=False)
-    parser.set_defaults(moped=False)
     parser.add_argument('--finetune_undersample', action='store_true')
     parser.set_defaults(finetune_undersample=False)
     parser.add_argument('--only_acc', action='store_true')
